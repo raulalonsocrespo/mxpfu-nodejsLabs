@@ -25,7 +25,14 @@ let users = [
 
 // GET request: Retrieve all users
 router.get("/",(req,res)=>{
-  res.send(users);
+  res.send(JSON.stringify(users, null, 4));
+});
+
+// GET by specific last name
+router.get("/lastName/:lastName",(req,res)=>{
+    const lastName = req.params.lastName;
+    filtered_users = users.filter((user) => user.lastName === lastName );
+    res.send(filtered_users);
 });
 
 // GET by specific ID request: Retrieve a single user with email ID
@@ -50,15 +57,56 @@ router.post("/",(req,res)=>{
 
 // PUT request: Update the details of a user by email ID
 router.put("/:email", (req, res) => {
-  // Copy the code here
-  res.send("Yet to be implemented")//This line is to be replaced with actual return value
+    const email = req.params.email;
+    filtered_users = users.filter((user) => user.email === email );
+    if (filtered_users.length > 0) {
+        let filtered_user = filtered_users[0];
+        let firstName = req.query.firstName;
+        let lastName = req.query.lastName;
+        let DOB = req.query.DOB;
+
+        if (firstName) {
+            filtered_user.firstName = firstName;
+        };
+
+        if (lastName) {
+            filtered_user.lastName = lastName;
+        }
+
+        if (DOB) {
+            filtered_user.DOB = DOB;
+        }
+
+        users = users.filter((user) => user.email != email );
+        users.push(filtered_user);
+        res.send("User with the email " + email + " has been updated");
+
+    } else {
+        res.send("Unable to find the user!");
+    }
 });
 
 
 // DELETE request: Delete a user by email ID
 router.delete("/:email", (req, res) => {
-  // Copy the code here
-  res.send("Yet to be implemented")//This line is to be replaced with actual return value
+    const email = req.params.email;
+    users = users.filter((user) => user.email != email );
+    res.send("User with the email " + email + " has been deleted");
+});
+
+function getDateFromString(strDate) {
+    let [dd,mm,yyyy] = strDate.split('-')
+    return new Date(yyyy+"/"+mm+"/"+dd);
+}
+    
+// console.log(sorted_users);
+router.get("/sort",(req,res)=>{
+    let sorted_users=users.sort(function(a, b) {
+        let d1 = getDateFromString(a.DOB);
+        let d2 = getDateFromString(b.DOB);
+            return d1-d2;
+          });
+    res.send(sorted_users);
 });
 
 module.exports=router;
